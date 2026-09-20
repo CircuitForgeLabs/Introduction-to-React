@@ -1,0 +1,2072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT APP DEV 2 — Introduction to React</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+/* ============================================================
+   THEME VARIABLES
+   ============================================================ */
+:root{
+    --paper:      #fdfcf8;
+    --paper-2:    #f6f3ec;
+    --ink:        #24292f;
+    --ink-soft:   #5b6570;
+    --rule:       #e3ddd0;
+    --accent:     #0f4c81;
+    --accent-2:   #1d6fb8;
+    --accent-soft:#e8f1fa;
+    --gold:       #b8860b;
+    --green:      #2e9e5b;
+    --red:        #cf4a3c;
+    --shadow:     0 10px 30px rgba(15,76,129,.08);
+    --sans:       'Segoe UI', system-ui, -apple-system, sans-serif;
+    --serif:      'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+    --mono:       Consolas, 'Courier New', monospace;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+
+body{
+    margin:0;
+    font-family:var(--sans);
+    background:
+        radial-gradient(circle at 12% 8%, #eef4fa 0%, transparent 45%),
+        radial-gradient(circle at 88% 92%, #f6efe2 0%, transparent 45%),
+        #e9e4da;
+    color:var(--ink);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+}
+
+/* ============================================================
+   READING PROGRESS BAR
+   ============================================================ */
+#progressBar{
+    position:fixed; top:0; left:0; height:3px; width:0%;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--gold));
+    z-index:999; transition:width .1s linear;
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+.topbar{
+    position:sticky; top:0; z-index:500;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px;
+    padding:12px 24px;
+    background:rgba(255,255,255,.88);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--rule);
+    box-shadow:0 2px 14px rgba(0,0,0,.05);
+}
+
+.brand{display:flex; align-items:center; gap:14px; min-width:0;}
+
+.brand-mark{
+    width:44px; height:44px; flex:none;
+    border-radius:12px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:grid; place-items:center;
+    color:#fff; font-weight:700; font-size:13px; letter-spacing:.5px;
+    box-shadow:0 4px 12px rgba(15,76,129,.28);
+}
+
+.brand-text{min-width:0;}
+.brand-subject{
+    font-size:11px; font-weight:700; letter-spacing:1.6px;
+    text-transform:uppercase; color:var(--accent);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.brand-topic{
+    font-family:var(--serif); font-size:15px; font-weight:600;
+    color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+.topbar-right{display:flex; align-items:center; gap:10px; flex:none;}
+
+.menu-btn{
+    display:none;
+    background:#fff; border:1px solid var(--rule); border-radius:10px;
+    width:42px; height:42px; cursor:pointer; font-size:18px; color:var(--accent);
+}
+
+.action-btn{
+    display:inline-flex; align-items:center; gap:9px;
+    border:none;
+    padding:11px 20px; border-radius:10px;
+    font-family:var(--sans); font-size:14px; font-weight:600;
+    cursor:pointer; white-space:nowrap;
+    transition:transform .15s, box-shadow .15s, opacity .15s;
+}
+.action-btn svg{width:17px; height:17px;}
+
+.pdf-btn{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    color:#fff;
+    box-shadow:0 5px 16px rgba(15,76,129,.3);
+}
+.pdf-btn:hover:not(:disabled){transform:translateY(-2px); box-shadow:0 8px 22px rgba(15,76,129,.38);}
+.pdf-btn:disabled{opacity:.65; cursor:progress;}
+
+.quiz-btn{
+    background:linear-gradient(135deg,var(--gold),#d4a017);
+    color:#fff;
+    box-shadow:0 5px 16px rgba(184,134,11,.32);
+}
+.quiz-btn:hover{transform:translateY(-2px); box-shadow:0 8px 22px rgba(184,134,11,.42);}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.layout{
+    display:grid;
+    grid-template-columns:290px minmax(0,1fr);
+    gap:34px;
+    max-width:1320px;
+    margin:0 auto;
+    padding:34px 24px 90px;
+    align-items:start;
+}
+
+/* ============================================================
+   SIDEBAR — TABLE OF CONTENTS
+   ============================================================ */
+.toc{
+    position:sticky; top:86px;
+    max-height:calc(100vh - 116px);
+    overflow-y:auto;
+    background:#fff;
+    border:1px solid var(--rule);
+    border-radius:14px;
+    padding:22px 18px;
+    box-shadow:var(--shadow);
+}
+
+.toc::-webkit-scrollbar{width:6px;}
+.toc::-webkit-scrollbar-thumb{background:#d6cfc0; border-radius:3px;}
+
+.toc-title{
+    font-size:11px; font-weight:700; letter-spacing:1.8px;
+    text-transform:uppercase; color:var(--gold);
+    padding-bottom:12px; margin-bottom:12px;
+    border-bottom:2px solid var(--rule);
+}
+
+.toc a{
+    display:block;
+    padding:9px 12px 9px 14px;
+    margin-bottom:3px;
+    color:var(--ink-soft);
+    text-decoration:none;
+    font-size:13.5px;
+    line-height:1.45;
+    border-left:3px solid transparent;
+    border-radius:0 8px 8px 0;
+    transition:all .18s;
+}
+.toc a:hover{background:var(--accent-soft); color:var(--accent);}
+.toc a.active{
+    background:var(--accent-soft);
+    color:var(--accent);
+    border-left-color:var(--accent);
+    font-weight:600;
+}
+.toc a .num{
+    display:inline-block;
+    min-width:22px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--gold);
+    font-weight:700;
+}
+.toc a.active .num{color:var(--accent);}
+
+.toc-sub a{padding-left:34px; font-size:12.8px;}
+
+.toc-footer{
+    margin-top:18px; padding-top:14px;
+    border-top:1px dashed var(--rule);
+    font-size:11.5px; color:var(--ink-soft); line-height:1.6;
+}
+
+/* ============================================================
+   BOOK / PAPER
+   ============================================================ */
+.book{
+    background:var(--paper);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    box-shadow:0 1px 0 #fff inset, 0 18px 44px rgba(40,35,25,.12);
+    padding:0;
+    overflow:hidden;
+    position:relative;
+}
+.book::before{
+    content:'';
+    position:absolute; top:0; bottom:0; left:0; width:10px;
+    background:linear-gradient(90deg, rgba(15,76,129,.14), transparent);
+    pointer-events:none;
+}
+.book-inner{padding:0 58px 70px 68px;}
+
+/* ============================================================
+   COVER PAGE
+   ============================================================ */
+.cover{
+    padding:70px 58px 54px 68px;
+    border-bottom:1px solid var(--rule);
+    background:linear-gradient(180deg,#fbf9f4 0%, #fdfcf8 100%);
+    position:relative;
+}
+.cover::after{
+    content:'';
+    position:absolute; left:68px; right:58px; bottom:22px;
+    height:1px; background:var(--rule);
+}
+.cover-eyebrow{
+    font-size:11px; font-weight:700; letter-spacing:2.6px;
+    text-transform:uppercase; color:var(--gold);
+    margin-bottom:18px;
+}
+.cover h1{
+    font-family:var(--serif);
+    font-size:clamp(30px,4.4vw,46px);
+    line-height:1.16;
+    margin:0 0 10px;
+    color:var(--accent);
+    letter-spacing:-.6px;
+}
+.cover-sub{
+    font-family:var(--serif);
+    font-size:clamp(16px,2vw,21px);
+    color:var(--ink-soft);
+    font-style:italic;
+    margin:0 0 34px;
+}
+.cover-meta{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:14px 26px;
+    margin-top:8px;
+}
+.meta-item{border-left:3px solid var(--accent); padding:4px 0 4px 14px;}
+.meta-label{
+    font-size:10.5px; font-weight:700; letter-spacing:1.4px;
+    text-transform:uppercase; color:var(--ink-soft);
+}
+.meta-value{font-size:14.5px; font-weight:600; color:var(--ink);}
+.cover-note{
+    margin-top:34px; padding:16px 20px;
+    background:var(--accent-soft);
+    border-left:4px solid var(--accent);
+    border-radius:0 8px 8px 0;
+    font-size:13.5px; color:#1c3d5c;
+}
+
+/* ============================================================
+   CHAPTERS
+   ============================================================ */
+.chapter{padding-top:56px; scroll-margin-top:92px;}
+
+.chapter-head{
+    display:flex; align-items:flex-start; gap:18px;
+    padding-bottom:14px;
+    border-bottom:2px solid var(--accent);
+    margin-bottom:26px;
+}
+.chapter-num{
+    font-family:var(--serif);
+    font-size:44px; line-height:1;
+    font-weight:700;
+    color:var(--rule);
+    flex:none;
+    margin-top:-4px;
+}
+.chapter-head h2{
+    font-family:var(--serif);
+    font-size:clamp(22px,2.8vw,29px);
+    color:var(--accent);
+    margin:0;
+    line-height:1.22;
+    letter-spacing:-.3px;
+}
+.chapter h3{
+    font-family:var(--serif);
+    font-size:19px;
+    color:var(--ink);
+    margin:34px 0 12px;
+    padding-left:12px;
+    border-left:4px solid var(--gold);
+    line-height:1.35;
+}
+.chapter h4{
+    font-size:15px;
+    font-weight:700;
+    color:var(--accent);
+    margin:24px 0 8px;
+    letter-spacing:.2px;
+}
+.chapter p{margin:0 0 15px;}
+.chapter ul, .chapter ol{margin:0 0 16px; padding-left:26px;}
+.chapter li{margin-bottom:8px;}
+.chapter li::marker{color:var(--accent); font-weight:700;}
+
+.lead{font-size:17.5px; line-height:1.75; color:#31383f;}
+.lead::first-letter{
+    font-family:var(--serif);
+    float:left;
+    font-size:60px;
+    line-height:.82;
+    padding:6px 12px 0 0;
+    color:var(--accent);
+    font-weight:700;
+}
+
+.callout{
+    background:var(--paper-2);
+    border:1px solid var(--rule);
+    border-left:5px solid var(--gold);
+    border-radius:0 10px 10px 0;
+    padding:16px 20px;
+    margin:22px 0;
+    font-size:14.5px;
+    color:#4a4234;
+}
+.callout strong{color:var(--gold);}
+
+.note{
+    background:var(--accent-soft);
+    border-left:5px solid var(--accent);
+    border-radius:0 10px 10px 0;
+    padding:16px 20px;
+    margin:22px 0;
+    font-size:14.5px;
+    color:#1c3d5c;
+}
+
+.table-wrap{overflow-x:auto; margin:20px 0;}
+table{width:100%; border-collapse:collapse; font-size:14px; background:#fff;}
+th, td{border:1px solid #ddd6c8; padding:11px 14px; text-align:left; vertical-align:top;}
+th{
+    background:var(--accent); color:#fff; font-weight:600;
+    font-size:12.5px; letter-spacing:.5px; text-transform:uppercase;
+}
+tbody tr:nth-child(even){background:#faf8f3;}
+tbody tr:hover{background:var(--accent-soft);}
+
+code{
+    font-family:var(--mono); font-size:13px;
+    background:#efeae0; color:#a83232;
+    padding:2px 6px; border-radius:4px;
+}
+pre{
+    background:#1f2430; color:#c8d0dc;
+    padding:18px 20px; border-radius:10px;
+    overflow-x:auto;
+    font-family:var(--mono); font-size:12.8px; line-height:1.65;
+    margin:18px 0; border-left:4px solid var(--accent-2);
+}
+pre code{background:transparent; color:inherit; padding:0; font-size:inherit;}
+
+.proscons{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin:24px 0;}
+.pc-box{border:1px solid var(--rule); border-radius:12px; padding:18px 20px; background:#fff;}
+.pc-box.pros{border-top:4px solid var(--green);}
+.pc-box.cons{border-top:4px solid var(--red);}
+.pc-box h4{margin:0 0 12px; font-size:14px; letter-spacing:1.2px; text-transform:uppercase;}
+.pc-box.pros h4{color:var(--green);}
+.pc-box.cons h4{color:var(--red);}
+.pc-box ol{margin:0; padding-left:20px; font-size:14px;}
+.pc-box li{margin-bottom:10px;}
+
+.timeline{
+    position:relative;
+    margin:26px 0 26px 10px;
+    padding-left:30px;
+    border-left:2px dashed var(--rule);
+}
+.tl-item{position:relative; margin-bottom:26px;}
+.tl-item::before{
+    content:'';
+    position:absolute; left:-39px; top:5px;
+    width:14px; height:14px; border-radius:50%;
+    background:var(--paper);
+    border:3px solid var(--accent);
+}
+.tl-year{
+    font-family:var(--mono); font-weight:700;
+    font-size:14px; color:var(--gold); letter-spacing:1px;
+}
+.tl-title{
+    font-family:var(--serif); font-size:17px; font-weight:700;
+    color:var(--accent); margin:2px 0 5px;
+}
+.tl-body{font-size:14.5px; color:#3d454e; margin:0;}
+
+.review-list{counter-reset:rq; list-style:none; padding-left:0;}
+.review-list li{
+    counter-increment:rq;
+    position:relative;
+    padding:14px 18px 14px 56px;
+    margin-bottom:10px;
+    background:#fff;
+    border:1px solid var(--rule);
+    border-radius:10px;
+    font-size:14.5px;
+}
+.review-list li::before{
+    content:counter(rq);
+    position:absolute; left:16px; top:50%; transform:translateY(-50%);
+    width:26px; height:26px; border-radius:50%;
+    background:var(--accent); color:#fff;
+    display:grid; place-items:center;
+    font-size:12.5px; font-weight:700;
+    font-family:var(--mono);
+}
+
+.refs{list-style:none; padding-left:0; font-size:14px;}
+.refs li{
+    padding:10px 0 10px 26px;
+    border-bottom:1px dashed var(--rule);
+    position:relative;
+    color:#3d454e;
+}
+.refs li::before{content:'▸'; position:absolute; left:4px; color:var(--gold); font-weight:700;}
+
+.chapter-nav{
+    display:flex; justify-content:space-between; gap:14px;
+    margin-top:56px; padding-top:26px;
+    border-top:1px solid var(--rule);
+}
+.nav-link{
+    flex:1; max-width:48%;
+    padding:14px 18px;
+    border:1px solid var(--rule);
+    border-radius:10px;
+    background:#fff;
+    text-decoration:none;
+    color:var(--ink);
+    transition:all .18s;
+}
+.nav-link:hover{border-color:var(--accent); background:var(--accent-soft); transform:translateY(-2px);}
+.nav-link.next{text-align:right;}
+.nav-link .nav-dir{
+    font-size:10.5px; font-weight:700; letter-spacing:1.4px;
+    text-transform:uppercase; color:var(--ink-soft);
+    display:block; margin-bottom:3px;
+}
+.nav-link .nav-title{
+    font-family:var(--serif); font-size:15px; font-weight:600; color:var(--accent);
+}
+
+.page-footer{
+    margin-top:50px;
+    padding-top:24px;
+    border-top:2px solid var(--rule);
+    text-align:center;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.9;
+}
+.page-footer strong{color:var(--accent);}
+
+#toTop{
+    position:fixed; right:26px; bottom:26px;
+    width:46px; height:46px; border-radius:50%;
+    background:var(--accent); color:#fff;
+    border:none; cursor:pointer; font-size:19px;
+    box-shadow:0 8px 22px rgba(15,76,129,.35);
+    opacity:0; pointer-events:none;
+    transition:opacity .25s, transform .25s;
+    z-index:400;
+}
+#toTop.show{opacity:1; pointer-events:auto;}
+#toTop:hover{transform:translateY(-3px);}
+
+/* ============================================================
+   QUIZ OVERLAY / MODAL
+   ============================================================ */
+.quiz-overlay{
+    position:fixed; inset:0;
+    background:rgba(20,25,35,.6);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+    z-index:900;
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding:40px 18px;
+    overflow-y:auto;
+}
+.quiz-overlay.show{display:flex;}
+
+.quiz-modal{
+    background:var(--paper);
+    border-radius:16px;
+    box-shadow:0 30px 80px rgba(0,0,0,.4);
+    width:100%;
+    max-width:880px;
+    overflow:hidden;
+    border:1px solid var(--rule);
+    animation:slideUp .3s ease;
+}
+@keyframes slideUp{
+    from{opacity:0; transform:translateY(24px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+.quiz-header{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    color:#fff;
+    padding:24px 30px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+}
+.quiz-header h2{
+    font-family:var(--serif);
+    font-size:22px;
+    margin:0;
+    line-height:1.2;
+}
+.quiz-header .sub{
+    font-size:12.5px;
+    opacity:.85;
+    margin-top:4px;
+    letter-spacing:.5px;
+}
+.quiz-close{
+    background:rgba(255,255,255,.15);
+    border:none; color:#fff;
+    width:38px; height:38px; border-radius:10px;
+    cursor:pointer; font-size:18px;
+    flex:none;
+    transition:background .18s;
+}
+.quiz-close:hover{background:rgba(255,255,255,.28);}
+
+.quiz-body{padding:28px 30px 10px;}
+
+.quiz-info{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:22px;
+    font-size:13px;
+    color:var(--ink-soft);
+}
+.quiz-info span{
+    background:var(--paper-2);
+    padding:6px 12px;
+    border-radius:20px;
+    border:1px solid var(--rule);
+}
+
+.question{
+    background:#fff;
+    border:1px solid var(--rule);
+    border-radius:12px;
+    padding:20px 22px;
+    margin-bottom:16px;
+    transition:border-color .2s, box-shadow .2s;
+}
+.question.correct{border-color:var(--green); background:#f3fbf6; box-shadow:0 0 0 3px rgba(46,158,91,.08);}
+.question.wrong{border-color:var(--red); background:#fdf4f2; box-shadow:0 0 0 3px rgba(207,74,60,.08);}
+
+.q-head{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    margin-bottom:14px;
+}
+.q-num{
+    background:var(--accent);
+    color:#fff;
+    font-family:var(--mono);
+    font-size:12.5px;
+    font-weight:700;
+    min-width:30px;
+    height:30px;
+    border-radius:8px;
+    display:grid;
+    place-items:center;
+    flex:none;
+}
+.q-text{
+    font-size:15px;
+    font-weight:600;
+    color:var(--ink);
+    line-height:1.55;
+    margin:0;
+    padding-top:3px;
+}
+
+.q-options{display:grid; gap:8px; margin-left:42px;}
+
+.option{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding:11px 14px;
+    border:1.5px solid var(--rule);
+    border-radius:9px;
+    cursor:pointer;
+    font-size:14px;
+    line-height:1.5;
+    transition:all .15s;
+    background:#fff;
+}
+.option:hover{border-color:var(--accent-2); background:var(--accent-soft);}
+.option input{
+    margin:0;
+    flex:none;
+    width:16px; height:16px;
+    margin-top:3px;
+    accent-color:var(--accent);
+    cursor:pointer;
+}
+.option .letter{
+    font-weight:700;
+    color:var(--accent);
+    font-family:var(--mono);
+    font-size:13px;
+    flex:none;
+    padding-top:1px;
+}
+
+/* Answer reveal states */
+.option.reveal-correct{
+    border-color:var(--green);
+    background:#e6f7ed;
+}
+.option.reveal-correct .letter{color:var(--green);}
+.option.reveal-wrong{
+    border-color:var(--red);
+    background:#fbe9e7;
+}
+.option.reveal-wrong .letter{color:var(--red);}
+.option.disabled{cursor:default; opacity:.85;}
+.option.disabled:hover{border-color:var(--rule); background:#fff;}
+.option.reveal-correct:hover{background:#e6f7ed; border-color:var(--green);}
+.option.reveal-wrong:hover{background:#fbe9e7; border-color:var(--red);}
+
+.q-feedback{
+    margin-top:12px;
+    margin-left:42px;
+    padding:10px 14px;
+    border-radius:8px;
+    font-size:13.5px;
+    display:none;
+    line-height:1.55;
+}
+.q-feedback.show{display:block;}
+.q-feedback.correct{background:#e6f7ed; color:#1d6b3d; border-left:4px solid var(--green);}
+.q-feedback.wrong{background:#fbe9e7; color:#8a2f24; border-left:4px solid var(--red);}
+.q-feedback strong{font-weight:700;}
+
+/* Quiz footer */
+.quiz-footer{
+    padding:22px 30px 28px;
+    border-top:1px solid var(--rule);
+    background:var(--paper-2);
+    position:sticky;
+    bottom:0;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+}
+.quiz-progress{
+    font-size:13px;
+    color:var(--ink-soft);
+    font-weight:600;
+}
+.quiz-progress strong{color:var(--accent); font-family:var(--mono);}
+
+.quiz-actions{display:flex; gap:10px; flex-wrap:wrap;}
+
+.qbtn{
+    border:none;
+    padding:12px 22px;
+    border-radius:10px;
+    font-family:var(--sans);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:transform .15s, box-shadow .15s, opacity .15s;
+}
+.qbtn-primary{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    color:#fff;
+    box-shadow:0 5px 14px rgba(15,76,129,.28);
+}
+.qbtn-primary:hover:not(:disabled){transform:translateY(-2px); box-shadow:0 8px 20px rgba(15,76,129,.38);}
+.qbtn-primary:disabled{opacity:.5; cursor:not-allowed;}
+
+.qbtn-secondary{
+    background:#fff;
+    color:var(--ink);
+    border:1.5px solid var(--rule);
+}
+.qbtn-secondary:hover{background:var(--paper); border-color:var(--accent); color:var(--accent);}
+
+.qbtn-gold{
+    background:linear-gradient(135deg,var(--gold),#d4a017);
+    color:#fff;
+    box-shadow:0 5px 14px rgba(184,134,11,.3);
+}
+.qbtn-gold:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(184,134,11,.42);}
+
+/* Score banner */
+.score-banner{
+    background:linear-gradient(135deg,#fef7e6,#fdfcf8);
+    border:2px solid var(--gold);
+    border-radius:14px;
+    padding:22px 26px;
+    margin-bottom:22px;
+    text-align:center;
+    display:none;
+}
+.score-banner.show{display:block; animation:slideUp .35s ease;}
+.score-banner .score-line{
+    font-family:var(--serif);
+    font-size:30px;
+    font-weight:700;
+    color:var(--accent);
+    line-height:1.2;
+}
+.score-banner .score-line .big{
+    font-size:44px;
+    color:var(--gold);
+}
+.score-banner .score-msg{
+    font-size:15px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    font-style:italic;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1024px){
+    .layout{grid-template-columns:1fr; padding:22px 16px 80px;}
+    .toc{
+        position:fixed;
+        top:0; left:0; bottom:0;
+        width:290px; max-height:100vh;
+        border-radius:0;
+        z-index:600;
+        transform:translateX(-105%);
+        transition:transform .28s ease;
+    }
+    .toc.open{transform:translateX(0);}
+    .menu-btn{display:grid; place-items:center;}
+    .overlay{
+        position:fixed; inset:0; background:rgba(20,25,35,.45);
+        z-index:590; opacity:0; pointer-events:none; transition:opacity .28s;
+    }
+    .overlay.show{opacity:1; pointer-events:auto;}
+    .book-inner{padding:0 26px 50px 30px;}
+    .cover{padding:46px 26px 40px 30px;}
+    .cover::after{left:30px; right:26px;}
+    .chapter-num{font-size:34px;}
+    .proscons{grid-template-columns:1fr;}
+}
+
+@media (max-width:720px){
+    .topbar{padding:10px 14px; gap:8px;}
+    .brand-mark{width:38px; height:38px; font-size:11px;}
+    .brand-topic{font-size:13px;}
+    .brand-subject{font-size:10px;}
+    .action-btn{padding:10px 13px; font-size:13px;}
+    .action-btn span.label{display:none;}
+    .book-inner{padding:0 18px 40px 20px;}
+    .cover{padding:36px 18px 32px 20px;}
+    .cover::after{left:20px; right:18px;}
+    .chapter-nav{flex-direction:column;}
+    .nav-link{max-width:100%;}
+    .nav-link.next{text-align:left;}
+    .lead::first-letter{font-size:46px;}
+    .quiz-body{padding:20px 18px 10px;}
+    .quiz-header{padding:18px 20px;}
+    .quiz-header h2{font-size:18px;}
+    .quiz-footer{padding:16px 18px 22px; flex-direction:column; align-items:stretch;}
+    .quiz-actions{flex-direction:column;}
+    .qbtn{width:100%;}
+    .q-options{margin-left:0;}
+    .q-feedback{margin-left:0;}
+    .question{padding:16px 16px;}
+}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@media print{
+    body{background:#fff;}
+    #progressBar, .topbar, .toc, #toTop, .chapter-nav, .overlay, .menu-btn, .quiz-overlay{display:none !important;}
+    .layout{display:block; max-width:none; padding:0; margin:0;}
+    .book{box-shadow:none; border:none; border-radius:0;}
+    .book::before{display:none;}
+    .book-inner{padding:0;}
+    .cover{padding:0 0 30px 0; border-bottom:2px solid #000;}
+    .cover::after{display:none;}
+    .chapter{padding-top:26px; page-break-before:always;}
+    .chapter:first-of-type{page-break-before:auto;}
+    .chapter-head{page-break-after:avoid;}
+    h3, h4{page-break-after:avoid;}
+    table, pre, .callout, .note, .pc-box{page-break-inside:avoid;}
+    a{color:#000; text-decoration:none;}
+}
+
+/* PDF mode */
+body.pdf-mode .toc,
+body.pdf-mode #toTop,
+body.pdf-mode .chapter-nav,
+body.pdf-mode #progressBar,
+body.pdf-mode .quiz-overlay{display:none !important;}
+body.pdf-mode .layout{display:block; max-width:none; padding:0; margin:0;}
+body.pdf-mode .book{box-shadow:none; border:none;}
+body.pdf-mode .chapter{padding-top:26px;}
+</style>
+</head>
+
+<body>
+
+<div id="progressBar"></div>
+
+<!-- ============================================================
+     TOP BAR
+     ============================================================ -->
+<header class="topbar">
+    <div class="brand">
+        <div class="brand-mark">IT</div>
+        <div class="brand-text">
+            <div class="brand-subject">IT APP DEV 2</div>
+            <div class="brand-topic">Introduction to React</div>
+        </div>
+    </div>
+
+    <div class="topbar-right">
+        <button class="menu-btn" id="menuBtn" aria-label="Open contents">☰</button>
+        <button class="action-btn pdf-btn" id="pdfBtn" onclick="downloadPDF()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span class="label">Download PDF</span>
+        </button>
+        <button class="action-btn quiz-btn" id="quizBtn" onclick="openQuiz()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            <span class="label">Take Quiz</span>
+        </button>
+    </div>
+</header>
+
+<div class="overlay" id="overlay"></div>
+
+<!-- ============================================================
+     LAYOUT
+     ============================================================ -->
+<div class="layout">
+
+    <!-- ============ TABLE OF CONTENTS ============ -->
+    <aside class="toc" id="toc">
+        <div class="toc-title">Table of Contents</div>
+
+        <a href="#cover" class="toc-link"><span class="num">00</span> Cover Page</a>
+        <a href="#sec-1" class="toc-link"><span class="num">01</span> Learning Objectives</a>
+        <a href="#sec-2" class="toc-link"><span class="num">02</span> What is React?</a>
+
+        <a href="#sec-3" class="toc-link"><span class="num">03</span> History of React</a>
+        <div class="toc-sub">
+            <a href="#sec-3-1" class="toc-link">3.1 Origins at Facebook</a>
+            <a href="#sec-3-2" class="toc-link">3.2 Expansion to Instagram</a>
+            <a href="#sec-3-3" class="toc-link">3.3 Open Source Release</a>
+            <a href="#sec-3-4" class="toc-link">3.4 Patent Grant</a>
+            <a href="#sec-3-5" class="toc-link">3.5 Timeline Summary</a>
+        </div>
+
+        <a href="#sec-4" class="toc-link"><span class="num">04</span> Advantages &amp; Disadvantages</a>
+        <div class="toc-sub">
+            <a href="#sec-4-1" class="toc-link">4.1 Advantages</a>
+            <a href="#sec-4-2" class="toc-link">4.2 Disadvantages</a>
+        </div>
+
+        <a href="#sec-5" class="toc-link"><span class="num">05</span> File Structures</a>
+        <div class="toc-sub">
+            <a href="#sec-5-1" class="toc-link">5.1 Grouping by Feature</a>
+            <a href="#sec-5-2" class="toc-link">5.2 Grouping by File Type</a>
+            <a href="#sec-5-3" class="toc-link">5.3 Create React App</a>
+            <a href="#sec-5-4" class="toc-link">5.4 Scalable Structure</a>
+            <a href="#sec-5-5" class="toc-link">5.5 Best Practices</a>
+        </div>
+
+        <a href="#sec-6" class="toc-link"><span class="num">06</span> Required Technologies</a>
+        <div class="toc-sub">
+            <a href="#sec-6-1" class="toc-link">6.1 Core Prerequisites</a>
+            <a href="#sec-6-2" class="toc-link">6.2 Tools</a>
+            <a href="#sec-6-3" class="toc-link">6.3 What CRA Includes</a>
+            <a href="#sec-6-4" class="toc-link">6.4 Optional Tools</a>
+        </div>
+
+        <a href="#sec-7" class="toc-link"><span class="num">07</span> Summary</a>
+        <a href="#sec-8" class="toc-link"><span class="num">08</span> Review Questions</a>
+        <a href="#sec-9" class="toc-link"><span class="num">09</span> References</a>
+
+        <div class="toc-footer">
+            <strong>IT APP DEV 2</strong><br>
+            Engr. Lee-Mher S. Binay-an<br>
+            Module 1 — Introduction to React
+        </div>
+    </aside>
+
+    <!-- ============ BOOK ============ -->
+    <main class="book">
+        <div class="book-inner" id="book-content">
+
+            <!-- ---------- COVER ---------- -->
+            <section id="cover" class="cover">
+                <div class="cover-eyebrow">Module 1 · Lecture Notes</div>
+                <h1>Introduction to React</h1>
+                <p class="cover-sub">History, Advantages &amp; Disadvantages, File Structures, and Required Technologies</p>
+
+                <div class="cover-meta">
+                    <div class="meta-item">
+                        <div class="meta-label">Subject</div>
+                        <div class="meta-value">IT APP DEV 2</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Instructor</div>
+                        <div class="meta-value">Engr. Lee-Mher S. Binay-an</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Duration</div>
+                        <div class="meta-value">90 minutes</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Module</div>
+                        <div class="meta-value">01 — Introduction to React</div>
+                    </div>
+                </div>
+
+                <div class="cover-note">
+                    <strong>How to use this module:</strong> Use the Table of Contents on the left to jump to any
+                    topic. Click <strong>Download PDF</strong> to save an offline copy. When you're ready,
+                    click <strong>Take Quiz</strong> to test your understanding with 25 multiple-choice items.
+                </div>
+            </section>
+
+            <!-- ---------- 1. LEARNING OBJECTIVES ---------- -->
+            <section id="sec-1" class="chapter">
+                <div class="chapter-head">
+                    <div class="chapter-num">01</div>
+                    <h2>Learning Objectives</h2>
+                </div>
+
+                <p>By the end of this lecture, students will be able to:</p>
+                <ol>
+                    <li>Define React and explain its role in modern web development.</li>
+                    <li>Trace the history and evolution of React from its origins at Facebook to its current status.</li>
+                    <li>Identify the key advantages and disadvantages of using React.</li>
+                    <li>Describe common React project file structures and folder organization strategies.</li>
+                    <li>List and explain the required technologies and prerequisites for React development.</li>
+                </ol>
+            </section>
+
+            <!-- ---------- 2. WHAT IS REACT ---------- -->
+            <section id="sec-2" class="chapter">
+                <div class="chapter-head">
+                    <div class="chapter-num">02</div>
+                    <h2>What is React?</h2>
+                </div>
+
+                <p class="lead">React (also known as React.js or ReactJS) is an <strong>open-source JavaScript
+                library</strong> for building user interfaces, particularly for single-page applications. It is
+                maintained by Meta (formerly Facebook) and a large community of individual developers and
+                companies. React allows developers to create reusable UI components that manage their own state,
+                making it possible to build complex, interactive web applications efficiently.</p>
+
+                <p>React is often referred to as a "frontend JavaScript framework," but technically it is a
+                <strong>library</strong> focused on the view layer of an application. It uses a
+                <strong>Virtual DOM</strong> (Document Object Model) to optimize rendering performance — instead
+                of manipulating the browser's DOM directly, React creates a virtual representation of the UI in
+                memory, calculates the most efficient way to update the browser's DOM, and applies only the
+                necessary changes.</p>
+
+                <div class="note">
+                    <strong>Analogy:</strong> Think of the Virtual DOM like "Track Changes" in a word processor.
+                    Instead of reprinting the whole page when one word changes, React finds the exact difference
+                    and updates only that part.
+                </div>
+            </section>
+
+            <!-- ---------- 3. HISTORY ---------- -->
+            <section id="sec-3" class="chapter">
+                <div class="chapter-head">
+                    <div class="chapter-num">03</div>
+                    <h2>History of React</h2>
+                </div>
+
+                <div class="timeline">
+
+                    <div class="tl-item" id="sec-3-1">
+                        <div class="tl-year">2011</div>
+                        <div class="tl-title">Origins at Facebook</div>
+                        <p class="tl-body">React was initially created by <strong>Jordan Walke</strong>, a software
+                        engineer at Facebook, in <strong>2011</strong>. Walke was inspired by <strong>XHP</strong>,
+                        an HTML component library for PHP developed at Facebook, which introduced the concept of
+                        composable components.</p>
+                        <p class="tl-body">Before React, Facebook faced a significant challenge: whenever a state
+                        change occurred in a web application, the entire page would re-render, causing users to lose
+                        previously stored information and resulting in poor performance. Walke started working on a
+                        prototype called <strong>FaxJS</strong> to make this process more efficient while providing a
+                        reasonable user experience. This prototype contained several critical characteristics of
+                        React, including updating views with minimal DOM manipulation.</p>
+                        <p class="tl-body">React was first used in production for <strong>Facebook's News Feed</strong>
+                        feature in 2011.</p>
+                    </div>
+
+                    <div class="tl-item" id="sec-3-2">
+                        <div class="tl-year">2012</div>
+                        <div class="tl-title">Expansion to Instagram</div>
+                        <p class="tl-body">In <strong>2012</strong>, Facebook acquired Instagram. One of the first
+                        products Instagram wanted to build was its website. After examining Facebook's technology
+                        stack, <strong>Pete Hunt</strong> made a case to use React on Instagram's website. At the
+                        time, React was closely coupled to Facebook's stack. Pete Hunt did most of the work required
+                        to decouple React from Facebook's stack so that Instagram could use it, making Instagram the
+                        <strong>first external product to use React</strong>.</p>
+                    </div>
+
+                    <div class="tl-item" id="sec-3-3">
+                        <div class="tl-year">2013</div>
+                        <div class="tl-title">Open Source Release</div>
+                        <p class="tl-body">In <strong>May 2013</strong>, React was <strong>open-sourced</strong> at
+                        JSConf in the United States. The initial public release was version <strong>V0.3.0</strong>
+                        in <strong>July 2013</strong>.</p>
+                    </div>
+
+                    <div class="tl-item" id="sec-3-4">
+                        <div class="tl-year">2015</div>
+                        <div class="tl-title">Patent Grant and Community Growth</div>
+                        <p class="tl-body">In <strong>April 2015</strong>, Facebook released a patent regarding the
+                        usage of React, which essentially stated: <em>"In as much as you do not sue us for patent
+                        infringement, we will give you this software for free; you can sell, distribute, import,
+                        make, and use this product."</em> This move encouraged widespread adoption across the
+                        developer community.</p>
+                        <p class="tl-body">Since then, React has been actively used in production by companies such
+                        as <strong>Trello, Slack, Docker, Airbnb, Khan Academy, The New York Times,</strong> and
+                        <strong>Codecademy</strong>, among many others.</p>
+                    </div>
+
+                </div>
+
+                <h3 id="sec-3-5">3.5 Timeline Summary</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th style="width:110px">Year</th><th>Milestone</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>2011</td><td>Jordan Walke creates FaxJS prototype; React first used in Facebook News Feed</td></tr>
+                            <tr><td>2012</td><td>Instagram becomes first external product to use React</td></tr>
+                            <tr><td>2013</td><td>React open-sourced at JSConf (May); initial public release V0.3.0 (July)</td></tr>
+                            <tr><td>2015</td><td>Facebook releases patent grant</td></tr>
+                            <tr><td>Present</td><td>React is one of the most widely used frontend libraries globally</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ---------- 4. ADVANTAGES & DISADVANTAGES ---------- -->
+            <section id="sec-4" class="chapter">
+                <div class="chapter-head">
+                    <div class="chapter-num">04</div>
+                    <h2>Advantages and Disadvantages of React</h2>
+                </div>
+
+                <div class="proscons">
+
+                    <div class="pc-box pros" id="sec-4-1">
+                        <h4>✓ Advantages</h4>
+                        <ol>
+                            <li><strong>Better Efficiency via Virtual DOM</strong> — React keeps all app features in
+                            a virtual DOM. All changes made in the DOM are automatically updated, resulting in faster
+                            rendering and improved application performance.</li>
+
+                            <li><strong>Component-Based Architecture</strong> — React allows developers to create
+                            reusable components. You can easily make segments per your requirements, which promotes
+                            code reuse, modularity, and maintainability.</li>
+
+                            <li><strong>Web Optimization Friendly</strong> — Using React, you can make lightweight web
+                            applications. React can run on the server-side, and the virtual DOM is delivered to the
+                            browser, improving initial load times.</li>
+
+                            <li><strong>Large Ecosystem and Community Support</strong> — React benefits from being the
+                            most-trained framework in public training corpora. It has a vast ecosystem of libraries,
+                            tools, and community resources.</li>
+
+                            <li><strong>Mobile Development with React Native</strong> — React.js can be used to build
+                            different types of apps, from single-page applications (SPAs) to server-side apps and
+                            <strong>mobile apps with React Native</strong>.</li>
+
+                            <li><strong>Backed by Meta (Facebook)</strong> — React's backing by Meta makes it the
+                            default choice for complex, long-lived enterprise applications.</li>
+
+                            <li><strong>Debugging and Developer Tools</strong> — React provides high-performance design
+                            tools and browser extensions (React Developer Tools) that make debugging and inspecting
+                            component hierarchies easier.</li>
+                        </ol>
+                    </div>
+
+                    <div class="pc-box cons" id="sec-4-2">
+                        <h4>✕ Disadvantages</h4>
+                        <ol>
+                            <li><strong>Steep Learning Curve</strong> — React can have a steeper learning curve as it
+                            often requires understanding additional libraries and patterns, such as state management,
+                            routing, and build tooling.</li>
+
+                            <li><strong>JSX Syntax Can Be Uncomfortable</strong> — Developers who are new to React may
+                            find JSX (JavaScript XML) uncomfortable to write. JavaScript expressions must be embedded
+                            within curly braces <code>{}</code>, and variables and functions cannot be defined
+                            directly inside JSX.</li>
+
+                            <li><strong>Rapid Pace of Development</strong> — ReactJS is constantly experiencing updates
+                            in its features and functionality. This rapid pace of development can make it difficult
+                            for developers to keep up with best practices.</li>
+
+                            <li><strong>Complexity and Choice Overload</strong> — The State of JS 2024 survey flagged
+                            <strong>excessive complexity</strong> and <strong>choice overload</strong> as common React
+                            pain points. Developers must choose their own router, store, and build tooling.</li>
+
+                            <li><strong>Performance Concerns in Some Scenarios</strong> — Critics argue that despite
+                            improvements, React can still be the slowest frontend framework in certain scenarios, with
+                            memoization and re-rendering issues that require careful optimization.</li>
+
+                            <li><strong>Hooks Rules and Constraints</strong> — React's documentation specifies that
+                            hooks can only be called at the top of components, never inside loops or conditions.
+                            <code>useEffect</code> requires a dependency array covering every reactive value it reads,
+                            which can be error-prone.</li>
+
+                            <li><strong>Ecosystem Fragmentation</strong> — React and its ecosystem have been described
+                            as "complex and fragmented," with ongoing debates about the best practices and the role of
+                            frameworks like Next.js.</li>
+                        </ol>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ---------- 5. FILE STRUCTURES ---------- -->
+            <section id="sec-5" class="chapter">
+                <div class="chapter-head">
+                    <div class="chapter-num">05</div>
+                    <h2>File Structures in React</h2>
+                </div>
+
+                <p>React does not have an opinionated way to structure projects. However, there are several common
+                approaches popular in the ecosystem.</p>
+
+                <h3 id="sec-5-1">5.1 Grouping by Features or Routes</h3>
+                <p>One common way to structure projects is to <strong>locate CSS, JS, and tests together</strong>
+                inside folders grouped by feature or route.</p>
+
+<pre><code>common/
+  Avatar.js
+  Avatar.css
+  APIUtils.js
+  APIUtils.test.js
+feed/
+  index.js
+  Feed.js
+  Feed.css
+  FeedStory.js
+  FeedStory.test.js
+  FeedAPI.js
+profile/
+  index.js
+  Profile.js
+  ProfileHeader.js
+  ProfileHeader.css
+  ProfileAPI.js</code></pre>
+
+                <p>The definition of a "feature" is not universal — it is up to you to choose the granularity. If you
+                cannot come up with a list of top-level folders, ask the users of your product what major parts it
+                consists of and use their mental model as a blueprint.</p>
+
+                <h3 id="sec-5-2">5.2 Grouping by File Type</h3>
+                <p>Another popular way to structure projects is to <strong>group similar files together</strong>:</p>
+
+<pre><code>api/
+  APIUtils.js
+  APIUtils.test.js
+  ProfileAPI.js
+  UserAPI.js
+components/
+  Avatar.js
+  Avatar.css
+  Feed.js
+  Feed.css
+  FeedStory.js
+  FeedStory.test.js
+  Profile.js
+  ProfileHeader.js
+  ProfileHeader.css</code></pre>
+
+                <p>Some developers prefer to go further and separate components into different folders depending on
+                their role in the application. For example, <strong>Atomic Design</strong> is a design methodology
+                built on this principle.</p>
+
+                <h3 id="sec-5-3">5.3 Typical Create React App Structure</h3>
+                <p>When you create a new React project using <code>create-react-app</code>, the default structure
+                looks like this:</p>
+
+<pre><code>my-app/
+├── node_modules/
+├── public/
+│   ├── index.html
+│   ├── favicon.ico
+│   └── manifest.json
+├── src/
+│   ├── App.js
+│   ├── App.css
+│   ├── App.test.js
+│   ├── index.js
+│   ├── index.css
+│   ├── logo.svg
+│   └── reportWebVitals.js
+├── .gitignore
+├── package.json
+├── package-lock.json
+└── README.md</code></pre>
+
+                <h4>Key Files</h4>
+                <ul>
+                    <li><code>public/index.html</code> — the main HTML file where the React app is mounted.</li>
+                    <li><code>src/index.js</code> — the JavaScript entry point that renders the root component.</li>
+                    <li><code>src/App.js</code> — the main application component.</li>
+                    <li><code>package.json</code> — lists dependencies and scripts (start, build, test, eject).</li>
+                </ul>
+
+                <h3 id="sec-5-4">5.4 Recommended Folder Structure for Scalable Projects</h3>
+                <p>For larger projects, a professional structure may include:</p>
+
+<pre><code>src/
+├── assets/          # Static assets (images, icons, fonts)
+├── components/      # Reusable UI components
+│   ├── common/      # Common components (Button, Input, etc.)
+│   └── forms/       # Form-specific components
+├── hooks/           # Custom React hooks
+├── pages/           # Page components (one per route)
+├── services/        # API services and utilities
+├── store/           # State management (Redux, Context, etc.)
+├── utils/           # Helper functions
+└── App.js           # Main application component</code></pre>
+
+                <h3 id="sec-5-5">5.5 Best Practices for File Structure</h3>
+                <ul>
+                    <li><strong>Avoid too much nesting</strong> — Limit yourself to a maximum of three or four nested
+                    folders within a single project. Deep nesting makes relative imports harder to write and
+                    update.</li>
+
+                    <li><strong>Don't overthink it</strong> — If you are just starting a project, don't spend more
+                    than five minutes on choosing a file structure. Pick any approach and start writing code. You
+                    will likely want to rethink it after writing some real code.</li>
+
+                    <li><strong>Colocation</strong> — Keep files that often change together close to each other. This
+                    principle is called "colocation."</li>
+
+                    <li><strong>Start simple</strong> — Begin by keeping all files in a single folder. Eventually it
+                    will grow large enough that you will want to separate some files.</li>
+                </ul>
+            </section>
+
+            <!-- ---------- 6. REQUIRED TECHNOLOGIES ---------- -->
+            <section id="sec-6" class="chapter">
+                <div class="chapter-head">
+                    <div class="chapter-num">06</div>
+                    <h2>Required Technologies and Prerequisites</h2>
+                </div>
+
+                <h3 id="sec-6-1">6.1 Core Prerequisites</h3>
+                <p>Before learning React, students should have a solid foundation in:</p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th style="width:210px">Prerequisite</th><th>Description</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>HTML</strong></td><td>Semantic markup, forms, and document structure</td></tr>
+                            <tr><td><strong>CSS</strong></td><td>Layout (Flexbox, Grid), responsive design</td></tr>
+                            <tr><td><strong>JavaScript (ES6+)</strong></td><td>Arrow functions, modules, destructuring, spread/rest, classes, Promises, async/await, array methods (<code>map</code>, <code>filter</code>, <code>reduce</code>)</td></tr>
+                            <tr><td><strong>Git and GitHub</strong></td><td>Basic version control (branching, pull requests, resolving conflicts)</td></tr>
+                            <tr><td><strong>CLI Comfort</strong></td><td>Navigating the terminal / command line</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout">
+                    <strong>Note:</strong> The DOM (Document Object Model) is covered in a separate discussion and is
+                    not included as a prerequisite here.
+                </div>
+
+                <h3 id="sec-6-2">6.2 Required Technologies and Tools</h3>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th style="width:230px">Technology</th><th>Purpose</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>Node.js</strong></td><td>JavaScript runtime environment required for local React development. Most JavaScript tooling you'll want to use for development requires Node.js.</td></tr>
+                            <tr><td><strong>npm (Node Package Manager)</strong></td><td>Comes bundled with Node.js. Used to install React and other dependencies.</td></tr>
+                            <tr><td><strong>JSX</strong></td><td>JavaScript syntax extension that lets you write markup-like code directly inside JavaScript. It compiles to lightweight function calls.</td></tr>
+                            <tr><td><strong>Babel</strong></td><td>A JavaScript compiler/transpiler that converts JSX syntax and modern JavaScript (ES6+) into backward-compatible JavaScript that browsers can understand. Babel transforms JSX elements into <code>React.createElement</code> calls.</td></tr>
+                            <tr><td><strong>Webpack</strong></td><td>A module bundler that organizes and bundles JavaScript files, React code, and other assets into a single bundle for the browser.</td></tr>
+                            <tr><td><strong>Code Editor (VS Code)</strong></td><td>Recommended editor for React development. Install extensions like ES7+ React/Redux snippets, ESLint, and Prettier.</td></tr>
+                            <tr><td><strong>Web Browser (Chrome)</strong></td><td>For viewing and debugging React applications. React Developer Tools extension is highly recommended.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 id="sec-6-3">6.3 What <code>create-react-app</code> Includes</h3>
+                <p>When you run <code>npx create-react-app my-app</code>, the tool sets up a development environment
+                that includes:</p>
+                <ul>
+                    <li><strong>Webpack</strong> — for bundling modules</li>
+                    <li><strong>Babel</strong> — for transpiling JSX and modern JavaScript</li>
+                    <li><strong>ESLint</strong> — for code linting and error checking</li>
+                </ul>
+
+                <h3 id="sec-6-4">6.4 Optional but Recommended</h3>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th style="width:290px">Technology</th><th>Purpose</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>React Router</strong></td><td>For client-side routing in single-page applications</td></tr>
+                            <tr><td><strong>State Management (Redux, Zustand, Context API)</strong></td><td>For managing complex application state</td></tr>
+                            <tr><td><strong>TypeScript</strong></td><td>For type-safe React development</td></tr>
+                            <tr><td><strong>Testing Library (Jest, React Testing Library)</strong></td><td>For unit and integration testing</td></tr>
+                            <tr><td><strong>Vite</strong></td><td>A modern, faster alternative to Webpack for React project bundling</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ---------- 7. SUMMARY ---------- -->
+            <section id="sec-7" class="chapter">
+                <div class="chapter-head">
+                    <div class="chapter-num">07</div>
+                    <h2>Summary</h2>
+                </div>
+
+                <ul>
+                    <li>React is a <strong>JavaScript library</strong> created by <strong>Jordan Walke</strong> at
+                    Facebook in <strong>2011</strong> for building user interfaces.</li>
+
+                    <li>It was first used in Facebook's News Feed, expanded to Instagram in 2012, and was
+                    <strong>open-sourced in 2013</strong>.</li>
+
+                    <li><strong>Advantages</strong> include the Virtual DOM, component-based architecture, large
+                    ecosystem, and mobile development with React Native.</li>
+
+                    <li><strong>Disadvantages</strong> include a steep learning curve, JSX syntax challenges, rapid
+                    development pace, and ecosystem complexity.</li>
+
+                    <li>React projects can be structured by <strong>features/routes</strong> or by <strong>file
+                    type</strong>; there is no single "correct" structure, but colocation and avoiding deep nesting
+                    are recommended.</li>
+
+                    <li><strong>Required technologies</strong> include Node.js, npm, JSX, Babel, Webpack, and a code
+                    editor like VS Code.</li>
+
+                    <li><strong>Prerequisites</strong> include solid HTML, CSS, JavaScript (ES6+), Git basics, and
+                    CLI comfort. <em>(The DOM is covered separately.)</em></li>
+                </ul>
+            </section>
+
+            <!-- ---------- 8. REVIEW QUESTIONS ---------- -->
+            <section id="sec-8" class="chapter">
+                <div class="chapter-head">
+                    <div class="chapter-num">08</div>
+                    <h2>Review Questions</h2>
+                </div>
+
+                <ol class="review-list">
+                    <li>Who created React and in what year?</li>
+                    <li>What was the name of the prototype that eventually became React?</li>
+                    <li>What is the Virtual DOM and why is it important?</li>
+                    <li>List three advantages and three disadvantages of using React.</li>
+                    <li>Describe two common approaches to structuring a React project.</li>
+                    <li>What is JSX and what tool is used to transpile it?</li>
+                    <li>What is the role of Node.js in React development?</li>
+                    <li>What does <code>create-react-app</code> include out of the box?</li>
+                </ol>
+            </section>
+
+            <!-- ---------- 9. REFERENCES ---------- -->
+            <section id="sec-9" class="chapter">
+                <div class="chapter-head">
+                    <div class="chapter-num">09</div>
+                    <h2>References</h2>
+                </div>
+
+                <ul class="refs">
+                    <li>W3Schools / Coursera — React Introduction</li>
+                    <li>Pusher Blog — The Evolution of React</li>
+                    <li>Educative — Node.js vs React.js</li>
+                    <li>React Documentation — File Structure</li>
+                    <li>Coursera — React Learning Roadmap (2026)</li>
+                    <li>BrowserStack — Vue vs React (2025)</li>
+                    <li>Vercel Docs — Vue vs React (2026)</li>
+                    <li>Babel Documentation</li>
+                    <li>NetGuru — Professional React Project Structure (2025)</li>
+                </ul>
+
+                <div class="callout">
+                    <strong>Instructor's Note:</strong> Encourage students to set up their development environment
+                    before the next laboratory session. The next lab activity will focus on installing Node.js,
+                    VS Code, and creating their first React application using <code>create-react-app</code>.
+                </div>
+
+                <div class="page-footer">
+                    <strong>IT APP DEV 2</strong> · Introduction to React<br>
+                    Prepared by <strong>Engr. Lee-Mher S. Binay-an</strong><br>
+                    Module 1 — Lecture Notes
+                </div>
+            </section>
+
+            <!-- ---------- CHAPTER NAV ---------- -->
+            <nav class="chapter-nav">
+                <a class="nav-link prev" href="#cover">
+                    <span class="nav-dir">◀ Previous</span>
+                    <span class="nav-title">Cover Page</span>
+                </a>
+                <a class="nav-link next" href="#sec-1">
+                    <span class="nav-dir">Next ▶</span>
+                    <span class="nav-title">Learning Objectives</span>
+                </a>
+            </nav>
+
+        </div>
+    </main>
+</div>
+
+<!-- ============================================================
+     QUIZ MODAL
+     ============================================================ -->
+<div class="quiz-overlay" id="quizOverlay">
+    <div class="quiz-modal">
+        <div class="quiz-header">
+            <div>
+                <h2>Module 1 Quiz — Introduction to React</h2>
+                <div class="sub">25 items · Multiple Choice · IT APP DEV 2</div>
+            </div>
+            <button class="quiz-close" onclick="closeQuiz()" aria-label="Close quiz">✕</button>
+        </div>
+
+        <div class="quiz-body" id="quizBody">
+            <div class="quiz-info">
+                <span>📝 25 questions</span>
+                <span>⏱️ No time limit</span>
+                <span>✅ Instant feedback</span>
+                <span>👤 Engr. Lee-Mher S. Binay-an</span>
+            </div>
+
+            <div class="score-banner" id="scoreBanner">
+                <div class="score-line">
+                    Your Score: <span class="big" id="scoreValue">0</span> / 25
+                </div>
+                <div class="score-msg" id="scoreMsg"></div>
+            </div>
+
+            <form id="quizForm"></form>
+        </div>
+
+        <div class="quiz-footer">
+            <div class="quiz-progress" id="quizProgress">
+                Answered: <strong id="answeredCount">0</strong> / 25
+            </div>
+            <div class="quiz-actions">
+                <button type="button" class="qbtn qbtn-secondary" onclick="resetQuiz()">Reset</button>
+                <button type="button" class="qbtn qbtn-gold" id="showAnswersBtn" onclick="showAnswers()" disabled>Show Answers</button>
+                <button type="button" class="qbtn qbtn-primary" id="submitQuizBtn" onclick="submitQuiz()">Submit Quiz</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button id="toTop" aria-label="Back to top">↑</button>
+
+<script>
+/* ============================================================
+   1. MOBILE TOC DRAWER
+   ============================================================ */
+const toc      = document.getElementById('toc');
+const menuBtn  = document.getElementById('menuBtn');
+const overlay  = document.getElementById('overlay');
+
+function openToc(){ toc.classList.add('open'); overlay.classList.add('show'); }
+function closeToc(){ toc.classList.remove('open'); overlay.classList.remove('show'); }
+
+menuBtn.addEventListener('click', () => {
+    toc.classList.contains('open') ? closeToc() : openToc();
+});
+overlay.addEventListener('click', closeToc);
+
+document.querySelectorAll('.toc a').forEach(link => {
+    link.addEventListener('click', () => {
+        if (window.innerWidth <= 1024) closeToc();
+    });
+});
+
+/* ============================================================
+   2. ACTIVE TOC HIGHLIGHT
+   ============================================================ */
+const tocLinks = [...document.querySelectorAll('.toc a[href^="#"]')];
+const targets  = tocLinks.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const id = '#' + entry.target.id;
+            tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === id));
+        }
+    });
+}, { rootMargin: '-90px 0px -65% 0px', threshold: 0 });
+
+targets.forEach(t => observer.observe(t));
+
+/* ============================================================
+   3. PROGRESS BAR + BACK TO TOP
+   ============================================================ */
+const progressBar = document.getElementById('progressBar');
+const toTop       = document.getElementById('toTop');
+
+function onScroll(){
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct       = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = pct + '%';
+    toTop.classList.toggle('show', scrollTop > 500);
+}
+window.addEventListener('scroll', onScroll, { passive:true });
+onScroll();
+
+toTop.addEventListener('click', () => window.scrollTo({ top:0, behavior:'smooth' }));
+
+/* ============================================================
+   4. DOWNLOAD PDF
+   ============================================================ */
+const PDF_FILENAME = 'Introduction_to_React_Lecture_Notes.pdf';
+
+async function downloadPDF(){
+    const btn      = document.getElementById('pdfBtn');
+    const original = btn.innerHTML;
+
+    if (typeof html2pdf === 'undefined') {
+        alert('The PDF generator could not be loaded (no internet connection).\n\n' +
+              'The Print dialog will open instead — choose "Save as PDF" as the destination, ' +
+              'and save the file as:\n\n' + PDF_FILENAME);
+        window.print();
+        return;
+    }
+
+    btn.disabled  = true;
+    btn.innerHTML = 'Generating…';
+    document.body.classList.add('pdf-mode');
+
+    const element = document.getElementById('book-content');
+
+    const options = {
+        margin:       [12, 12, 14, 12],
+        filename:     PDF_FILENAME,
+        image:        { type: 'jpeg', quality: 0.97 },
+        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#fdfcf8',
+                        scrollX: 0, scrollY: 0, windowWidth: element.scrollWidth },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['css', 'legacy'], avoid: ['table', 'pre', '.pc-box', '.callout', '.note'] }
+    };
+
+    try {
+        await html2pdf().set(options).from(element).save();
+    } catch (err) {
+        console.error('PDF generation failed:', err);
+        alert('PDF generation failed. The Print dialog will open instead — ' +
+              'choose "Save as PDF" and name the file:\n\n' + PDF_FILENAME);
+        window.print();
+    } finally {
+        document.body.classList.remove('pdf-mode');
+        btn.disabled  = false;
+        btn.innerHTML = original;
+    }
+}
+
+/* ============================================================
+   5. SMOOTH SCROLL
+   ============================================================ */
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e){
+        const id = this.getAttribute('href');
+        if (id === '#' || id.length < 2) return;
+        const target = document.querySelector(id);
+        if (!target) return;
+        e.preventDefault();
+        const offset = window.innerWidth <= 1024 ? 70 : 88;
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+        history.replaceState(null, '', id);
+    });
+});
+
+/* ============================================================
+   6. QUIZ DATA — 25 ITEMS
+   ============================================================ */
+const QUIZ_DATA = [
+    /* --- Section 2: What is React (Q1–Q3) --- */
+    {
+        q: "What type of software is React?",
+        options: [
+            "A full-stack web framework",
+            "An open-source JavaScript library for building user interfaces",
+            "A CSS preprocessor",
+            "A database management system"
+        ],
+        answer: 1,
+        explain: "React is an open-source JavaScript library focused on the view layer of an application — not a full framework."
+    },
+    {
+        q: "Which company maintains React today?",
+        options: ["Google", "Microsoft", "Meta (formerly Facebook)", "Amazon"],
+        answer: 2,
+        explain: "React is maintained by Meta (formerly Facebook) along with a large community of developers."
+    },
+    {
+        q: "What is the main purpose of the Virtual DOM in React?",
+        options: [
+            "To replace JavaScript entirely",
+            "To store user data in a database",
+            "To optimize rendering by updating only the parts of the UI that changed",
+            "To compile CSS into JavaScript"
+        ],
+        answer: 2,
+        explain: "The Virtual DOM is an in-memory representation of the UI. React compares it with the previous version and updates only the changed parts, improving performance."
+    },
+
+    /* --- Section 3: History (Q4–Q9) --- */
+    {
+        q: "Who created React?",
+        options: ["Pete Hunt", "Jordan Walke", "Dan Abramov", "Mark Zuckerberg"],
+        answer: 1,
+        explain: "React was created by Jordan Walke, a software engineer at Facebook."
+    },
+    {
+        q: "In what year was React initially created at Facebook?",
+        options: ["2008", "2011", "2013", "2015"],
+        answer: 1,
+        explain: "React was initially created in 2011 and first used in production for Facebook's News Feed."
+    },
+    {
+        q: "What was the name of the prototype that eventually became React?",
+        options: ["XHP", "FaxJS", "ReactDOM", "Babel"],
+        answer: 1,
+        explain: "Jordan Walke built a prototype called FaxJS, which contained critical characteristics of React including minimal DOM manipulation."
+    },
+    {
+        q: "Which company became the first external product to use React?",
+        options: ["Twitter", "Netflix", "Instagram", "YouTube"],
+        answer: 2,
+        explain: "In 2012, Facebook acquired Instagram, and Instagram became the first external product to use React."
+    },
+    {
+        q: "In what year was React open-sourced at JSConf?",
+        options: ["2011", "2012", "2013", "2014"],
+        answer: 2,
+        explain: "React was open-sourced in May 2013 at JSConf in the United States."
+    },
+    {
+        q: "What was the significance of Facebook's April 2015 patent grant for React?",
+        options: [
+            "It made React a paid product",
+            "It allowed anyone to use React for free as long as they did not sue Facebook for patent infringement",
+            "It restricted React to Facebook employees only",
+            "It removed React from open source"
+        ],
+        answer: 1,
+        explain: "The patent grant encouraged widespread adoption by stating that anyone could use, sell, distribute, and modify React freely as long as they did not sue Facebook for patent infringement."
+    },
+
+    /* --- Section 4: Advantages & Disadvantages (Q10–Q15) --- */
+    {
+        q: "Which of the following is an ADVANTAGE of using React?",
+        options: [
+            "It eliminates the need to learn JavaScript",
+            "It provides a component-based architecture that promotes code reuse",
+            "It removes the need for a build tool",
+            "It automatically optimizes database queries"
+        ],
+        answer: 1,
+        explain: "React's component-based architecture lets developers build reusable UI pieces, promoting modularity and maintainability."
+    },
+    {
+        q: "Which React feature allows developers to build mobile apps for iOS and Android?",
+        options: ["React Router", "React Native", "Redux", "Webpack"],
+        answer: 1,
+        explain: "React Native lets developers build mobile applications using React skills and syntax."
+    },
+    {
+        q: "Which of the following is a DISADVANTAGE of React?",
+        options: [
+            "It cannot be used for single-page applications",
+            "It has no community support",
+            "It has a steep learning curve because it requires learning additional libraries and patterns",
+            "It cannot be used with modern JavaScript"
+        ],
+        answer: 2,
+        explain: "React's steep learning curve is a common criticism — developers must also learn state management, routing, and build tooling."
+    },
+    {
+        q: "Why can JSX syntax be uncomfortable for new React developers?",
+        options: [
+            "JSX is only supported in Internet Explorer",
+            "JSX mixes JavaScript and HTML-like markup, requiring expressions inside curly braces",
+            "JSX replaces JavaScript entirely",
+            "JSX cannot be used with components"
+        ],
+        answer: 1,
+        explain: "JSX mixes JavaScript with HTML-like syntax, and JavaScript expressions must be embedded inside curly braces {}, which many beginners find unfamiliar."
+    },
+    {
+        q: "According to the State of JS 2024 survey, what are common React pain points?",
+        options: [
+            "Missing documentation and no community",
+            "Excessive complexity and choice overload",
+            "Inability to work with TypeScript",
+            "Lack of browser support"
+        ],
+        answer: 1,
+        explain: "The State of JS 2024 survey flagged excessive complexity and choice overload as common React pain points — developers must pick their own router, store, and build tooling."
+    },
+    {
+        q: "Which of the following is TRUE about React's hooks rules?",
+        options: [
+            "Hooks can be called from anywhere in the code",
+            "Hooks can only be called at the top of components, never inside loops or conditions",
+            "Hooks must always be called inside useEffect",
+            "Hooks are only available in class components"
+        ],
+        answer: 1,
+        explain: "React's documentation specifies that hooks can only be called at the top of components — never inside loops, conditions, or nested functions."
+    },
+
+    /* --- Section 5: File Structures (Q16–Q20) --- */
+    {
+        q: "When grouping by feature or route, what is typically placed together in a folder?",
+        options: [
+            "Only image assets",
+            "CSS, JS, and tests related to that feature",
+            "Only database migration files",
+            "Only third-party libraries"
+        ],
+        answer: 1,
+        explain: "Grouping by feature means placing the CSS, JavaScript, and tests for a specific feature or route together in one folder."
+    },
+    {
+        q: "In a Create React App project, which file is the JavaScript entry point?",
+        options: ["src/App.js", "public/index.html", "src/index.js", "package.json"],
+        answer: 2,
+        explain: "src/index.js is the JavaScript entry point that renders the root component into the DOM."
+    },
+    {
+        q: "In a Create React App project, where is the main HTML file located?",
+        options: ["src/index.html", "public/index.html", "src/App.html", "node_modules/index.html"],
+        answer: 1,
+        explain: "public/index.html is the main HTML file where the React app is mounted."
+    },
+    {
+        q: "Which of the following is a recommended best practice for React file structures?",
+        options: [
+            "Nest folders at least 7 levels deep for organization",
+            "Keep files that change together close to each other (colocation)",
+            "Always place all files in the root directory",
+            "Avoid using folders entirely"
+        ],
+        answer: 1,
+        explain: "Colocation — keeping files that change together close to each other — is a recommended best practice."
+    },
+    {
+        q: "What does the src/App.js file represent in a Create React App project?",
+        options: [
+            "The main application component",
+            "The webpack configuration",
+            "The list of dependencies",
+            "The HTML template"
+        ],
+        answer: 0,
+        explain: "src/App.js is the main application component in a default Create React App project."
+    },
+
+    /* --- Section 6: Required Technologies (Q21–Q25) --- */
+    {
+        q: "What is the role of Node.js in React development?",
+        options: [
+            "It replaces JavaScript in the browser",
+            "It provides a JavaScript runtime environment required for local React development",
+            "It is a CSS framework",
+            "It is a database engine"
+        ],
+        answer: 1,
+        explain: "Node.js is a JavaScript runtime environment. Most JavaScript tooling used for React development requires Node.js."
+    },
+    {
+        q: "What tool is responsible for transpiling JSX into browser-compatible JavaScript?",
+        options: ["Webpack", "Babel", "ESLint", "npm"],
+        answer: 1,
+        explain: "Babel is the JavaScript compiler/transpiler that converts JSX syntax and modern JavaScript (ES6+) into backward-compatible JavaScript."
+    },
+    {
+        q: "What is the purpose of Webpack in a React project?",
+        options: [
+            "It styles React components",
+            "It bundles JavaScript files, React code, and other assets into a single bundle for the browser",
+            "It manages the database",
+            "It replaces Node.js"
+        ],
+        answer: 1,
+        explain: "Webpack is a module bundler that organizes and bundles JavaScript files, React code, and other assets into a single bundle for the browser."
+    },
+    {
+        q: "Which of the following is NOT included out of the box when you run create-react-app?",
+        options: ["Webpack", "Babel", "ESLint", "React Router"],
+        answer: 3,
+        explain: "create-react-app includes Webpack, Babel, and ESLint. React Router is a separate optional library for client-side routing."
+    },
+    {
+        q: "Which of the following is a RECOMMENDED optional tool for React development?",
+        options: [
+            "React Router for client-side routing in single-page applications",
+            "MySQL Workbench for state management",
+            "Adobe Photoshop for transpiling JSX",
+            "Microsoft Excel for bundling modules"
+        ],
+        answer: 0,
+        explain: "React Router is a recommended optional library for client-side routing in single-page applications."
+    }
+];
+
+/* ============================================================
+   7. QUIZ RENDERING
+   ============================================================ */
+const LETTERS = ['A','B','C','D'];
+let submitted = false;
+
+function buildQuiz(){
+    const form = document.getElementById('quizForm');
+    form.innerHTML = '';
+
+    QUIZ_DATA.forEach((item, idx) => {
+        const qDiv = document.createElement('div');
+        qDiv.className = 'question';
+        qDiv.id = `q-${idx}`;
+        qDiv.dataset.index = idx;
+
+        const qHead = document.createElement('div');
+        qHead.className = 'q-head';
+        qHead.innerHTML = `<div class="q-num">${idx + 1}</div><p class="q-text">${escapeHtml(item.q)}</p>`;
+        qDiv.appendChild(qHead);
+
+        const optWrap = document.createElement('div');
+        optWrap.className = 'q-options';
+
+        item.options.forEach((opt, oi) => {
+            const label = document.createElement('label');
+            label.className = 'option';
+            label.id = `q-${idx}-opt-${oi}`;
+            label.innerHTML = `
+                <input type="radio" name="q${idx}" value="${oi}" data-q="${idx}" data-o="${oi}">
+                <span class="letter">${LETTERS[oi]}.</span>
+                <span class="opt-text">${escapeHtml(opt)}</span>
+            `;
+            optWrap.appendChild(label);
+        });
+
+        qDiv.appendChild(optWrap);
+
+        const fb = document.createElement('div');
+        fb.className = 'q-feedback';
+        fb.id = `fb-${idx}`;
+        qDiv.appendChild(fb);
+
+        form.appendChild(qDiv);
+    });
+
+    // Attach change listeners
+    form.querySelectorAll('input[type="radio"]').forEach(input => {
+        input.addEventListener('change', updateAnsweredCount);
+    });
+
+    updateAnsweredCount();
+}
+
+function escapeHtml(str){
+    return String(str)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#39;');
+}
+
+function updateAnsweredCount(){
+    const total = QUIZ_DATA.length;
+    let answered = 0;
+    for (let i = 0; i < total; i++){
+        if (document.querySelector(`input[name="q${i}"]:checked`)) answered++;
+    }
+    document.getElementById('answeredCount').textContent = answered;
+}
+
+/* ============================================================
+   8. SUBMIT / SCORE / REVEAL
+   ============================================================ */
+function submitQuiz(){
+    if (submitted) return;
+
+    const total = QUIZ_DATA.length;
+    let score = 0;
+
+    QUIZ_DATA.forEach((item, idx) => {
+        const qDiv    = document.getElementById(`q-${idx}`);
+        const fb      = document.getElementById(`fb-${idx}`);
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+        const chosen   = selected ? parseInt(selected.value, 10) : -1;
+
+        // Disable all options
+        qDiv.querySelectorAll('.option').forEach(opt => opt.classList.add('disabled'));
+        qDiv.querySelectorAll('input[type="radio"]').forEach(inp => inp.disabled = true);
+
+        // Reveal correct answer
+        const correctOpt = document.getElementById(`q-${idx}-opt-${item.answer}`);
+        if (correctOpt) correctOpt.classList.add('reveal-correct');
+
+        if (chosen === item.answer){
+            score++;
+            qDiv.classList.add('correct');
+            fb.className = 'q-feedback correct show';
+            fb.innerHTML = `<strong>Correct!</strong> ${escapeHtml(item.explain)}`;
+        } else {
+            qDiv.classList.add('wrong');
+            if (chosen !== -1){
+                const wrongOpt = document.getElementById(`q-${idx}-opt-${chosen}`);
+                if (wrongOpt) wrongOpt.classList.add('reveal-wrong');
+            }
+            const chosenText = chosen === -1
+                ? '<em>No answer selected.</em>'
+                : `<strong>Your answer:</strong> ${LETTERS[chosen]}. ${escapeHtml(item.options[chosen])}`;
+            fb.className = 'q-feedback wrong show';
+            fb.innerHTML = `${chosenText}<br><strong>Correct answer:</strong> ${LETTERS[item.answer]}. ${escapeHtml(item.options[item.answer])}<br><br>${escapeHtml(item.explain)}`;
+        }
+    });
+
+    // Show score banner
+    const banner = document.getElementById('scoreBanner');
+    const scoreVal = document.getElementById('scoreValue');
+    const scoreMsg = document.getElementById('scoreMsg');
+    scoreVal.textContent = score;
+
+    const pct = Math.round((score / total) * 100);
+    let msg = '';
+    if (pct === 100) msg = 'Perfect score! Outstanding work. 🏆';
+    else if (pct >= 90) msg = 'Excellent! You have a strong grasp of the module. 🌟';
+    else if (pct >= 80) msg = 'Very good! Just a few items to review. 👍';
+    else if (pct >= 70) msg = 'Good job — review the missed items and try again. 📖';
+    else if (pct >= 60) msg = 'Fair. Re-read the module sections and retake the quiz. 📚';
+    else msg = 'Keep studying. Review the module carefully and try again. 💪';
+
+    scoreMsg.textContent = msg;
+    banner.classList.add('show');
+    banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    submitted = true;
+    document.getElementById('submitQuizBtn').disabled = true;
+    document.getElementById('submitQuizBtn').textContent = 'Submitted';
+    document.getElementById('showAnswersBtn').disabled = true;
+}
+
+function showAnswers(){
+    if (!submitted){
+        alert('Please submit the quiz first to reveal the answers.');
+        return;
+    }
+}
+
+function resetQuiz(){
+    submitted = false;
+    const banner = document.getElementById('scoreBanner');
+    banner.classList.remove('show');
+
+    const submitBtn = document.getElementById('submitQuizBtn');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Quiz';
+    document.getElementById('showAnswersBtn').disabled = true;
+
+    buildQuiz();
+    document.getElementById('quizBody').scrollTop = 0;
+    const modal = document.querySelector('.quiz-overlay');
+    modal.scrollTop = 0;
+}
+
+/* ============================================================
+   9. OPEN / CLOSE QUIZ
+   ============================================================ */
+function openQuiz(){
+    const overlay = document.getElementById('quizOverlay');
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    if (!document.getElementById('quizForm').children.length){
+        buildQuiz();
+    }
+    overlay.scrollTop = 0;
+}
+
+function closeQuiz(){
+    const overlay = document.getElementById('quizOverlay');
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+/* Close on overlay background click */
+document.getElementById('quizOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'quizOverlay') closeQuiz();
+});
+
+/* Close on Escape key */
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('quizOverlay').classList.contains('show')){
+        closeQuiz();
+    }
+});
+</script>
+
+</body>
+</html>
